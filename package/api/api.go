@@ -4,6 +4,9 @@ import (
 	"askUs/v1/package/auth"
 	amdb "askUs/v1/package/auth/databases/psql"
 	authR "askUs/v1/package/auth/router"
+	"askUs/v1/package/user"
+	umdb "askUs/v1/package/user/databases/psql"
+	userR "askUs/v1/package/user/router"
 	jAuth "askUs/v1/util/auth"
 	"askUs/v1/util/config"
 	mid "askUs/v1/util/middleware"
@@ -41,7 +44,7 @@ func (ap *api) Route(e *echo.Echo) {
 	// })
 	authService := auth.Init(amdb.AuthDb{}, ap.Jwt, ap.Config)
 	// ideaService := idea.Init(ideamdb.IdeaDB{})
-	// userService := user.Init(&umdb.UserDb{}, authService, ideaService)
+	userService := user.Init(&umdb.UserDb{}, authService)
 	authR.Route(authService, v1, mid.ConnectionMDB(ap.Client))
-	// userR.Route(v1, userService, ap.MiddleWares...)
+	userR.Route(v1, userService, ap.MiddleWares...)
 }
