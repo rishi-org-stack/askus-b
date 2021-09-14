@@ -31,7 +31,7 @@ type (
 	StatusType string
 
 	TokenGenratorInterface interface {
-		GenrateToken(id, email string) (string, error)
+		GenrateToken(id int, email string) (string, error)
 	}
 	//DTO's
 	AuthResponse struct {

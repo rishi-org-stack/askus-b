@@ -12,6 +12,7 @@ import (
 const (
 	source                  = "AUTH"
 	AUTH_INSERT_ERROR       = source + "_INSERT_ERROR"
+	AUTH_SERVER_ERROR       = source + "_SERVER_ERROR"
 	AUTH_BAD_REQUEST        = source + "_BAD_REQUEST"
 	AUTH_OTP_INSERT_ERROR   = source + "_OTP_INSERT_ERROR"
 	AUTH_UNAUTHORIZED_ERROR = source + "_INSERT_ERROR"
@@ -81,11 +82,27 @@ func (authSer AuthService) Verify(ctx context.Context, otpReq *VerifyRequest) (*
 			Code:    AUTH_UNAUTHORIZED_ERROR,
 		}
 	}
+	token, err := authSer.createToken(otpReq.ID, "rishi@gmail.com")
+	if err != nil {
+		return &apiRes.Response{}, apiError.ApiError{
+			Status:  http.StatusInternalServerError,
+			Message: "pls try after some time",
+			Code:    AUTH_SERVER_ERROR,
+		}
+	}
 	return &apiRes.Response{
 		Status:  http.StatusOK,
 		Message: "otp  verified",
-		Data:    "ok",
+		Data:    token,
 	}, nil
+}
+
+func (s AuthService) createToken(id int, email string) (string, error) {
+	token, err := s.JwtSer.GenrateToken(id, email)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
 }
 func (ar AuthService) GetRequestByID(ctx context.Context, id int) (*AuthRequest, error) {
 	authR, err := ar.AuthData.GetRequest(ctx, 2)

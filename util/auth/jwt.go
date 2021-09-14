@@ -41,7 +41,7 @@ func (s *Auth) ParseToken(authHeader string) (*jwt.Token, error) {
 	})
 
 }
-func (a *Auth) GenrateToken(id, email string) (string, error) {
+func (a *Auth) GenrateToken(id int, email string) (string, error) {
 	return jwt.NewWithClaims(a.algo, jwt.MapClaims{
 		"id":    id,
 		"email": email,
