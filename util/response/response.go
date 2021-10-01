@@ -1,8 +1,9 @@
 package response
 
 import (
-	"github.com/labstack/echo/v4"
 	utilError "askUs/v1/util/error"
+
+	"github.com/labstack/echo/v4"
 )
 
 type Response struct {

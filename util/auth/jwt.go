@@ -41,10 +41,11 @@ func (s *Auth) ParseToken(authHeader string) (*jwt.Token, error) {
 	})
 
 }
-func (a *Auth) GenrateToken(id int, email string) (string, error) {
+func (a *Auth) GenrateToken(id int, email string, typeOfClinet string) (string, error) {
 	return jwt.NewWithClaims(a.algo, jwt.MapClaims{
-		"id":    id,
-		"email": email,
-		"exp":   time.Now().Add(a.ttl).Unix(),
+		"id":     id,
+		"email":  email,
+		"exp":    time.Now().Add(a.ttl).Unix(),
+		"client": typeOfClinet,
 	}).SignedString(a.key)
 }

@@ -13,7 +13,6 @@ type (
 		// InsertUser(ctx context.Context, atr *AuthRequest) (AuthRequest{}, error)
 		GetRequest(ctx context.Context, id int) (*AuthRequest, error)
 	}
-
 	Service interface {
 		HandleAuth(ctx context.Context) (*apiRes.Response, apiError.ApiErrorInterface)
 		Verify(ctx context.Context, otpReq *VerifyRequest) (*apiRes.Response, apiError.ApiErrorInterface)
@@ -21,8 +20,8 @@ type (
 	}
 	AuthRequest struct {
 		ID     int    `json:"id"  gorm:"primaryKey"`
-		Email  string `json:"email gorm:"not null"`
-		Status string `json:"status gorm:"default:NEW"`
+		Email  string `json:"email" gorm:"not null"`
+		Status string `json:"status" gorm:"default:NEW"`
 	}
 	VerifyRequest struct {
 		ID  int    `json:"id"`
@@ -31,7 +30,7 @@ type (
 	StatusType string
 
 	TokenGenratorInterface interface {
-		GenrateToken(id int, email string) (string, error)
+		GenrateToken(int, string, string) (string, error)
 	}
 	//DTO's
 	AuthResponse struct {
@@ -50,6 +49,10 @@ const (
 	Verified StatusType = "Verified"
 	Invalid  StatusType = "Invalid"
 	Old      StatusType = "Old"
+)
+const (
+	DoctorClient  = "doctor"
+	PatientClient = "patient"
 )
 
 func (AuthRequest) TableName() string {

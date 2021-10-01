@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"askUs/v1/package/user"
 	utilOTP "askUs/v1/util/auth"
 	"askUs/v1/util/config"
 	apiError "askUs/v1/util/error"
@@ -19,18 +20,20 @@ const (
 )
 
 type AuthService struct {
-	AuthData DB
-	JwtSer   TokenGenratorInterface
-	Config   *config.Env
+	AuthData    DB
+	JwtSer      TokenGenratorInterface
+	Config      *config.Env
+	UserService user.Service
 }
 
 var OTP string
 
-func Init(db DB, js TokenGenratorInterface, config *config.Env) *AuthService {
+func Init(db DB, js TokenGenratorInterface, us user.Service, config *config.Env) Service {
 	return &AuthService{
-		AuthData: db,
-		JwtSer:   js,
-		Config:   config,
+		AuthData:    db,
+		JwtSer:      js,
+		Config:      config,
+		UserService: us,
 	}
 }
 
@@ -66,6 +69,7 @@ func (authSer AuthService) HandleAuth(ctx context.Context) (*apiRes.Response, ap
 
 }
 func (authSer AuthService) Verify(ctx context.Context, otpReq *VerifyRequest) (*apiRes.Response, apiError.ApiErrorInterface) {
+	clientType := ctx.Value("surround").(map[string]interface{})["userType"].(string)
 	otp := &utilOTP.OTP{}
 	err := otp.Get(otpReq.ID)
 	if err != nil {
@@ -82,7 +86,38 @@ func (authSer AuthService) Verify(ctx context.Context, otpReq *VerifyRequest) (*
 			Code:    AUTH_UNAUTHORIZED_ERROR,
 		}
 	}
-	token, err := authSer.createToken(otpReq.ID, "rishi@gmail.com")
+	id := otpReq.ID
+	req, err := authSer.AuthData.GetRequest(ctx, otpReq.ID)
+	if err != nil {
+		return &apiRes.Response{}, apiError.ApiError{
+			Status:  http.StatusBadRequest,
+			Message: "pls try after some time",
+			Code:    AUTH_SERVER_ERROR,
+		}
+	}
+	if clientType == DoctorClient {
+		user, err := authSer.UserService.FindOrCreateDoctor(ctx, req.Email)
+		if err != nil {
+			return &apiRes.Response{}, apiError.ApiError{
+				Status:  http.StatusBadRequest,
+				Message: "pls try after some time",
+				Code:    AUTH_SERVER_ERROR,
+			}
+		}
+		id = user.ID
+	} else if clientType == PatientClient {
+		user, err := authSer.UserService.FindOrCreatePatient(ctx, req.Email)
+		if err != nil {
+			return &apiRes.Response{}, apiError.ApiError{
+				Status:  http.StatusBadRequest,
+				Message: "pls try after some time",
+				Code:    AUTH_SERVER_ERROR,
+			}
+		}
+		id = user.ID
+	}
+
+	token, err := authSer.createToken(id, req.Email, clientType)
 	if err != nil {
 		return &apiRes.Response{}, apiError.ApiError{
 			Status:  http.StatusInternalServerError,
@@ -97,8 +132,8 @@ func (authSer AuthService) Verify(ctx context.Context, otpReq *VerifyRequest) (*
 	}, nil
 }
 
-func (s AuthService) createToken(id int, email string) (string, error) {
-	token, err := s.JwtSer.GenrateToken(id, email)
+func (s AuthService) createToken(id int, email string, clientType string) (string, error) {
+	token, err := s.JwtSer.GenrateToken(id, email, clientType)
 	if err != nil {
 		return "", err
 	}

@@ -1,10 +1,9 @@
 package middleware
 
 import (
-	"net/http"
-
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo/v4"
+	"net/http"
 )
 
 type TokenParser interface {
@@ -19,8 +18,10 @@ func JwtAuth(tk TokenParser) echo.MiddlewareFunc {
 				return c.JSON(http.StatusUnauthorized, map[string]string{"message": "invalid token re login"})
 			}
 			claims := token.Claims.(jwt.MapClaims)
-			id := claims["id"].(string)
+			id := claims["id"].(float64)
+			client := claims["client"].(string)
 			c.Set("id", id)
+			c.Set("client", client)
 			return hf(c)
 		}
 	}

@@ -3,17 +3,13 @@ package router
 import (
 	user "askUs/v1/package/user"
 	"askUs/v1/util"
-	utilResponse "askUs/v1/util/response"
+	"askUs/v1/util/response"
 
 	"github.com/labstack/echo/v4"
 )
 
 type Http struct {
 	uSer user.Service
-}
-type Res struct {
-	Data interface{}
-	Msg  string
 }
 
 func Route(g *echo.Group, userService user.Service, m ...echo.MiddlewareFunc) {
@@ -22,28 +18,53 @@ func Route(g *echo.Group, userService user.Service, m ...echo.MiddlewareFunc) {
 	}
 	grpUser := g.Group("/user", m...)
 	grpUser.GET("/", h.getById)
-	grpUser.PUT("/", h.updateById)
+	grpUser.GET("/:name", h.getByName)
+	grpUser.PUT("/d", h.updateById)
+	grpUser.PUT("/p", h.updateByIdP)
 }
+
 func (h *Http) getById(c echo.Context) error {
 
-	user, err := h.uSer.GetUser(util.ToContextService(c))
+	user, err := h.uSer.GetUserByID(util.ToContextService(c))
 
 	if err != nil {
-		return utilResponse.RespondError(c, err)
+		return response.RespondError(c, err)
 	}
+	return response.Respond(c, user)
+}
 
-	return utilResponse.Respond(c, user)
+func (h *Http) getByName(c echo.Context) error {
+	name := c.Param("name")
+	user, err := h.uSer.GetDoctorByName(util.ToContextService(c), name)
+
+	if err != nil {
+		return response.RespondError(c, err)
+	}
+	return response.Respond(c, user)
 }
 
 func (h *Http) updateById(c echo.Context) error {
-	US := &user.User{}
+	US := &user.Doctor{}
 	if err := c.Bind(US); err != nil {
-		return utilResponse.RespondError(c, err)
+		return response.RespondError(c, err)
 	}
-	user, err := h.uSer.UpdateUser(util.ToContextService(c), US)
+	user, err := h.uSer.UpdateDoctortByID(util.ToContextService(c), US)
 
 	if err != nil {
-		return utilResponse.RespondError(c, err)
+		return response.RespondError(c, err)
 	}
-	return utilResponse.Respond(c, user)
+	return response.Respond(c, user)
+}
+
+func (h *Http) updateByIdP(c echo.Context) error {
+	US := &user.Patient{}
+	if err := c.Bind(US); err != nil {
+		return response.RespondError(c, err)
+	}
+	user, err := h.uSer.UpdatePatientByID(util.ToContextService(c), US)
+
+	if err != nil {
+		return response.RespondError(c, err)
+	}
+	return response.Respond(c, user)
 }

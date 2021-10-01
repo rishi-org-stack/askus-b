@@ -2,6 +2,7 @@ package main
 
 import (
 	"askUs/v1/package/auth"
+	"askUs/v1/package/user"
 	"database/sql"
 	"log"
 
@@ -23,6 +24,12 @@ func main() {
 	tx = gdb.Exec("CREATE SCHEMA IF NOT EXISTS auth")
 	checkErr(tx.Error)
 	ok := gdb.AutoMigrate(&auth.AuthRequest{})
+	checkErr(ok)
+	tx = gdb.Exec("DROP SCHEMA IF EXISTS usr CASCADE")
+	checkErr(tx.Error)
+	tx = gdb.Exec("CREATE SCHEMA IF NOT EXISTS usr")
+	checkErr(tx.Error)
+	ok = gdb.AutoMigrate(&user.Doctor{}, &user.Patient{}, &user.Experience{}, &user.Institution{}, &user.Address{})
 	checkErr(ok)
 }
 func checkErr(err error) {

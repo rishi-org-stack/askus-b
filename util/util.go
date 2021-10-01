@@ -23,9 +23,11 @@ func TransferData(o1, o2 interface{}) error {
 func ToContextService(c echo.Context) context.Context {
 	surround := make(map[string]interface{}, 0)
 	id := c.Get("id")
+	clientType := c.Get("client")
 	client := c.Get("pgClient")
 	surround["id"] = id
-	surround["mgClient"] = client
+	surround["userType"] = clientType
+	surround["pgClient"] = client
 	return context.WithValue(context.Background(), "surround", surround)
 }
 
