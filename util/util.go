@@ -3,6 +3,7 @@ package util
 import (
 	"context"
 	"encoding/json"
+	"strconv"
 
 	"github.com/jinzhu/copier"
 	"github.com/labstack/echo/v4"
@@ -45,7 +46,9 @@ func GetFromServiceCtx(c context.Context, key string) interface{} {
 func Serialize(obj interface{}) ([]byte, error) {
 	return json.Marshal(obj)
 }
-
+func StringToInt(obj string) (int, error) {
+	return strconv.Atoi(obj)
+}
 func DeSerialize(btArray []byte, obj interface{}) error {
 	return json.Unmarshal(btArray, obj)
 }

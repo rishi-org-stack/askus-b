@@ -6,6 +6,7 @@ import (
 	"context"
 )
 
+//TODO: though the otp is gnratedfor user and vic versa it allowsgenration oftoken
 type (
 	DB interface {
 		FindOrInsert(ctx context.Context, atr *AuthRequest) (*AuthRequest, error)

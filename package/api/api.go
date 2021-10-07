@@ -1,6 +1,9 @@
 package api
 
 import (
+	"askUs/v1/package/advice"
+	admdb "askUs/v1/package/advice/database/psql"
+	adviceR "askUs/v1/package/advice/router"
 	"askUs/v1/package/auth"
 	amdb "askUs/v1/package/auth/databases/psql"
 	authR "askUs/v1/package/auth/router"
@@ -43,8 +46,11 @@ func (ap *api) Route(e *echo.Echo) {
 	// 	return c.String(http.StatusAccepted, "Works well\n")
 	// })
 	userService := user.Init(&umdb.UserDb{})
+	adviceService := advice.Init(&admdb.AdviceData{})
 	authService := auth.Init(amdb.AuthDb{}, ap.Jwt, userService, ap.Config)
 	// ideaService := idea.Init(ideamdb.IdeaDB{})
 	authR.Route(authService, v1, mid.ConnectionMDB(ap.Client))
 	userR.Route(v1, userService, ap.MiddleWares...)
+	adviceR.Route(v1, adviceService, ap.MiddleWares...)
+	// ad
 }
