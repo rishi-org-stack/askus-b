@@ -45,7 +45,6 @@ func (ap *api) Route(e *echo.Echo) {
 	// v1.GET("/", func(c echo.Context) error {
 	// 	return c.String(http.StatusAccepted, "Works well\n")
 	// })
-	userService := user.Init(&umdb.UserDb{})
 	adviceService := advice.Init(&admdb.AdviceData{})
 	authService := auth.Init(amdb.AuthDb{}, ap.Jwt, userService, ap.Config)
 	// ideaService := idea.Init(ideamdb.IdeaDB{})
