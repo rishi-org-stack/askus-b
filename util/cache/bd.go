@@ -1,76 +1,48 @@
 package cache
 
 import (
+	"context"
+	"time"
 
-	// "json"
-
-	// "time"
-
-	"github.com/dgraph-io/badger/v3"
+	"github.com/go-redis/redis/v8"
 )
 
+//will figure it out later
+var ctx = context.TODO()
+
 // var DB *badger.DB
-type BadgerDB struct {
-	DB *badger.DB
+type RedisDB struct {
+	DB *redis.Client
 }
 
-func Connect() (*BadgerDB, error) {
-	// opts := badger.DefaultOptions("./")
-	// opts.Dir = "./badger"
-	// opts.ValueDir = "./badger"
-	// db, err := badger.Open(opts)
-	// if err != nil {
-	// 	return &BadgerDB{}, err
-	// }
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// defer db.Close()
-	// for i := 1; i < 1000; i++ {
-	// 	time.Sleep(1 * time.Second)
-	// 	log.Println(i)
-	// }
-	// return &BadgerDB{
-	// 	DB: db,
-	// }, nil
-	// Ope the Badger database located in the /tmp/badger directory.
-	// It will be created if it doesn't exist.
-	DB, err := badger.Open(badger.DefaultOptions("/tmp/badger"))
-	// defer DB.Close()
-	if err != nil {
-		return &BadgerDB{}, err
-	}
-	return &BadgerDB{
-		DB: DB,
+func Connect() (*RedisDB, error) {
+
+	return &RedisDB{
+		DB: redis.NewClient(&redis.Options{
+			Addr:     "localhost:6379",
+			Password: "", // no password set
+			DB:       0,  // use default DB
+		}),
 	}, nil
 }
 
-func (Bdb *BadgerDB) Set(key string, val []byte) error {
-	err := Bdb.DB.Update(func(txn *badger.Txn) error {
-		return txn.Set([]byte(key), val)
-	})
-
+func (Bdb *RedisDB) Set(key string, val string, exp time.Duration) error {
+	err := Bdb.DB.Set(ctx, key, val, exp).Err()
+	if err != nil {
+		panic(err)
+	}
 	return err
 }
 
-func (Bdb *BadgerDB) Get(key string) ([]byte, error) {
-	var val []byte
-	err := Bdb.DB.View(func(txn *badger.Txn) error {
-		item, err := txn.Get([]byte(key))
-		// Use item here.
-		val, err = item.ValueCopy(val)
-		return err
-	})
+func (Bdb *RedisDB) Get(key string) (string, error) {
+	val, err := Bdb.DB.Get(ctx, key).Result()
 	if err != nil {
-		return val, err
+		return "", err
 	}
-	return val, err
+	return val, nil
 }
 
-func (Bdb *BadgerDB) Delete(key string) error {
-	err := Bdb.DB.Update(func(txn *badger.Txn) error {
-		err := txn.Delete([]byte(key))
-		return err
-	})
+func (Bdb *RedisDB) Delete() error {
+	err := Bdb.DB.FlushAll(ctx).Err()
 	return err
 }

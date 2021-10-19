@@ -4,12 +4,14 @@ import (
 	"askUs/v1/package/advice"
 	"askUs/v1/package/auth"
 	"askUs/v1/package/user"
+	"askUs/v1/util/cache"
+	"context"
 	"database/sql"
-	"log"
-
+	"fmt"
 	_ "github.com/lib/pq"
 	gpsql "gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"log"
 )
 
 func main() {
@@ -47,6 +49,15 @@ func main() {
 	checkErr(tx.Error)
 	ok = gdb.AutoMigrate(&advice.Advice{}, &advice.Like{})
 	checkErr(ok)
+	clearCache()
+}
+func clearCache() {
+	rdb, err := cache.Connect()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	rdb.DB.FlushAll(context.TODO())
 }
 func checkErr(err error) {
 	if err != nil {

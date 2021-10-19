@@ -71,7 +71,7 @@ func (authSer AuthService) HandleAuth(ctx context.Context, atr *AuthRequest) (*a
 func (authSer AuthService) Verify(ctx context.Context, otpReq *VerifyRequest) (*apiRes.Response, apiError.ApiErrorInterface) {
 	clientType := ctx.Value("surround").(map[string]interface{})["userType"].(string)
 	otp := &utilOTP.OTP{}
-	err := otp.Get(otpReq.ID)
+	Otp, err := otp.Get(otpReq.ID)
 	if err != nil {
 		return &apiRes.Response{}, apiError.ApiError{
 			Status:  http.StatusBadRequest,
@@ -79,7 +79,7 @@ func (authSer AuthService) Verify(ctx context.Context, otpReq *VerifyRequest) (*
 			Code:    AUTH_BAD_REQUEST,
 		}
 	}
-	if otp.Otp != otpReq.OTP {
+	if Otp != otpReq.OTP {
 		return &apiRes.Response{}, apiError.ApiError{
 			Status:  http.StatusUnauthorized,
 			Message: "otp doesn't matches",

@@ -1,21 +1,22 @@
 package auth
 
 import (
-	util "askUs/v1/util"
 	cache "askUs/v1/util/cache"
 	"errors"
+	"fmt"
 	"math/rand"
 	"strconv"
 	"time"
 )
 
 type OTP struct {
-	Otp    string
-	Expiry time.Time
+	Otp      string
+	Expiry   time.Time
+	duration time.Duration
 }
 
 var (
-	DB *cache.BadgerDB
+	DB *cache.RedisDB
 )
 
 func init() {
@@ -30,8 +31,9 @@ func GenrateOtp(sec int) *OTP {
 		otp += string(s[index])
 	}
 	return &OTP{
-		Otp:    otp,
-		Expiry: time.Now().Add(time.Second * time.Duration(sec)),
+		Otp:      otp,
+		Expiry:   time.Now().Add(time.Second * time.Duration(sec)),
+		duration: time.Second * time.Duration(sec),
 	}
 }
 
@@ -45,40 +47,32 @@ func isExpired(otp *OTP) bool {
 func (otp *OTP) Set(key int) error {
 	if !isExpired(otp) {
 		Key := strconv.Itoa(key)
-		btArray, err := util.Serialize(otp)
-		if err != nil {
-			return err
-		}
-		// DB, err := cache.Connect()
+		// btArray, err := util.Serialize(otp)
 		// if err != nil {
 		// 	return err
 		// }
-		err = DB.Set(Key, btArray)
+		fmt.Printf("%T \n", (Key))
+		err := DB.Set(Key, otp.Otp, otp.duration)
 		return err
 	}
 	return errors.New("otp expired")
 }
 
-func (otp *OTP) Get(key int) error {
+func (otp *OTP) Get(key int) (string, error) {
 	Key := strconv.Itoa(key)
-	// DB, err := cache.Connect()
-	// if err != nil {
-	// 	return err
-	// }
 	array, err := DB.Get(Key)
 	if err != nil {
-		return err
+		return "", err
 	}
-	err = util.DeSerialize(array, otp)
-	return err
+	return array, nil
 }
 
-func (otp *OTP) Delete(key int) error {
-	Key := strconv.Itoa(key)
+func (otp *OTP) Delete() error {
+	// Key := strconv.Itoa(key)
 	DB, err := cache.Connect()
 	if err != nil {
 		return err
 	}
-	err = DB.Delete(Key)
+	err = DB.Delete()
 	return err
 }
