@@ -30,7 +30,16 @@ func main() {
 	checkErr(tx.Error)
 	tx = gdb.Exec("CREATE SCHEMA IF NOT EXISTS usr")
 	checkErr(tx.Error)
-	ok = gdb.AutoMigrate(&user.Doctor{}, &user.Patient{}, &user.Experience{}, &user.Institution{}, &user.Address{})
+	ok = gdb.AutoMigrate(
+		&user.Doctor{},
+		&user.Patient{},
+		&user.Experience{},
+		&user.Institution{},
+		&user.Address{}, &user.Request{}, &user.FollowedByDoctor{},
+		&user.FollowingDoctor{},
+		&user.FollowedByPatient{},
+		&user.FollowedDoctorsByPatient{},
+	)
 	checkErr(ok)
 	tx = gdb.Exec("DROP SCHEMA IF EXISTS advice CASCADE")
 	checkErr(tx.Error)

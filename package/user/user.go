@@ -1,28 +1,25 @@
 package user
 
 import (
+	"askUs/v1/util"
 	utilError "askUs/v1/util/error"
 	"askUs/v1/util/response"
 
 	// "askUs/v1/util/response"
 	"context"
 	"net/http"
+
+	"gorm.io/gorm"
 )
 
 const (
-	source                    = "USER"
-	source_doctor             = "DOCTOR"
-	source_patient            = "PATIENT"
+	source = "USER"
+
 	ID_DECODE_ERROR           = source + "_ERROR_GEETING_ID"
 	USER_GET_ERROR            = source + "_GET_ERROR"
 	USER_DOCTOR_CREATE_ERROR  = source + "_DOCTOR_CREATE_ERROR"
 	USER_PATIENT_CREATE_ERROR = source + "_PATIENT_CREATE_ERROR"
-	// USER_GET_IDEA_ERROR       = source + "_" + source_idea + "_GET_ERROR"
-	// USER_AUTH_GET_ERROR       = source + "_" + source_auth + "_GET_ERROR"
-	USER_COPY_ERROR = source + "_COPY_ERROR"
-	// USER_IDEA_INSERT_ERROR    = source + "_" + source_idea + "_INSERT_ERROR"
-	USER_PATIENT_UPDATE_ERROR = source + "_" + source_patient + "_UPDATE_ERROR"
-	USER_DOCTOR_UPDATE_ERROR  = source + "_" + source_doctor + "_UPDATE_ERROR"
+	USER_COPY_ERROR           = source + "_COPY_ERROR"
 )
 
 type (
@@ -125,8 +122,8 @@ func (s UserService) UpdatePatientByID(ctx context.Context, pt *Patient) (*respo
 	pt, err := s.UserData.UpdatePatientByID(ctx, pt, id)
 	if err != nil {
 		return &response.Response{}, utilError.ApiError{
-			Status:  http.StatusBadRequest,
-			Code:    USER_PATIENT_UPDATE_ERROR,
+			Status: http.StatusBadRequest,
+			// Code:    USER_PATIENT_UPDATE_ERROR,
 			Message: err.Error(),
 		}
 	}
@@ -142,8 +139,8 @@ func (s UserService) UpdateDoctortByID(ctx context.Context, doc *Doctor) (*respo
 	doc, err := s.UserData.UpdateDoctorByID(ctx, doc, id)
 	if err != nil {
 		return &response.Response{}, utilError.ApiError{
-			Status:  http.StatusBadRequest,
-			Code:    USER_PATIENT_UPDATE_ERROR,
+			Status: http.StatusBadRequest,
+			// Code:    USER_PATIENT_UPDATE_ERROR,
 			Message: err.Error(),
 		}
 	}
@@ -153,3 +150,242 @@ func (s UserService) UpdateDoctortByID(ctx context.Context, doc *Doctor) (*respo
 		Data:    doc,
 	}, nil
 }
+
+//TODO: reques can e created by doctor to it self fix ths
+func (s UserService) CreateReq(ctx context.Context, docid string) (*response.Response, utilError.ApiErrorInterface) {
+	id := ctx.Value("surround").(map[string]interface{})["id"].(float64)
+	docID, _ := util.StringToInt(docid)
+	req := &Request{
+		SenderID:   int(id),
+		DoctorID:   docID,
+		Status:     PENDING,
+		GenratedBy: ctx.Value("surround").(map[string]interface{})["userType"].(string),
+	}
+	_, err := s.UserData.GetReqWithSenderandDocID(ctx, id, docid, req.GenratedBy)
+	if err != gorm.ErrRecordNotFound {
+		return &response.Response{}, utilError.ApiError{
+			Status:  http.StatusBadRequest,
+			Message: "already requesed",
+		}
+	}
+	req, err = s.UserData.CreateReq(ctx, req)
+	if err != nil {
+		return &response.Response{}, utilError.ApiError{
+			Status:  http.StatusBadGateway,
+			Message: err.Error(),
+		}
+	}
+	return &response.Response{
+		Status:  http.StatusCreated,
+		Data:    req,
+		Message: "user successfully requested to " + docid,
+	}, nil
+}
+func (s UserService) GetMyRequests(ctx context.Context) (*response.Response, utilError.ApiErrorInterface) {
+	id := ctx.Value("surround").(map[string]interface{})["id"].(float64)
+	reqs, err := s.UserData.GetReqsWithSenderID(ctx, id)
+	if err != nil {
+		return &response.Response{}, utilError.ApiError{
+			Status:  http.StatusBadGateway,
+			Message: err.Error(),
+		}
+	}
+	return &response.Response{
+		Status:  http.StatusCreated,
+		Data:    reqs,
+		Message: "get all requests  sent by current user successfull",
+	}, nil
+}
+
+func (s UserService) GetRequestForMe(ctx context.Context) (*response.Response, utilError.ApiErrorInterface) {
+	id := ctx.Value("surround").(map[string]interface{})["id"].(float64)
+	reqs, err := s.UserData.GetReqsWithDocID(ctx, id)
+	if err != nil {
+		return &response.Response{}, utilError.ApiError{
+			Status:  http.StatusBadGateway,
+			Message: err.Error(),
+		}
+	}
+	return &response.Response{
+		Status:  http.StatusCreated,
+		Data:    reqs,
+		Message: "get all requests  sent by current user successfull",
+	}, nil
+}
+
+func (s UserService) acceptDoctorRequuest(ctx context.Context, req *Request) (*response.Response, utilError.ApiErrorInterface) {
+	reciver, err := s.UserData.GetDoctorByID(ctx, float64(req.DoctorID))
+	if err != nil {
+		return &response.Response{}, utilError.ApiError{
+			Status:  http.StatusBadRequest,
+			Message: err.Error(),
+			Code:    "line 220",
+		}
+	}
+	fbd := &FollowedByDoctor{
+		DoctorID: reciver.ID,
+		UserID:   req.SenderID,
+	}
+	fd := &FollowingDoctor{
+		DoctorID: req.SenderID,
+		UserID:   reciver.ID,
+	}
+	_, err = s.UserData.CreateFBD(ctx, fbd)
+	if err != nil {
+		return &response.Response{}, utilError.ApiError{
+			Status:  http.StatusBadRequest,
+			Message: err.Error(),
+			Code:    "line 237",
+		}
+	}
+	_, err = s.UserData.CreateFD(ctx, fd)
+
+	if err != nil {
+		return &response.Response{}, utilError.ApiError{
+			Status:  http.StatusBadRequest,
+			Message: err.Error(),
+			Code:    "line 246",
+		}
+	}
+
+	return &response.Response{}, nil
+}
+func (s UserService) acceptPatientRequest(ctx context.Context, req *Request) (*response.Response, utilError.ApiErrorInterface) {
+	reciver, err := s.UserData.GetDoctorByID(ctx, float64(req.DoctorID))
+	if err != nil {
+		return &response.Response{}, utilError.ApiError{
+			Status:  http.StatusBadRequest,
+			Message: err.Error(),
+			Code:    "line 220",
+		}
+	}
+	fbd := &FollowedByPatient{
+		DoctorID: reciver.ID,
+		UserID:   req.SenderID,
+	}
+	fd := &FollowedDoctorsByPatient{
+		PatientID: req.SenderID,
+		UserID:    reciver.ID,
+	}
+	_, err = s.UserData.CreateFBP(ctx, fbd)
+	if err != nil {
+		return &response.Response{}, utilError.ApiError{
+			Status:  http.StatusBadRequest,
+			Message: err.Error(),
+			Code:    "line 237",
+		}
+	}
+	_, err = s.UserData.CreateFDBP(ctx, fd)
+
+	if err != nil {
+		return &response.Response{}, utilError.ApiError{
+			Status:  http.StatusBadRequest,
+			Message: err.Error(),
+			Code:    "line 246",
+		}
+	}
+
+	return &response.Response{}, nil
+
+}
+func (s UserService) UpdateStatusOfReq(ctx context.Context, reqId string, status string) (*response.Response, utilError.ApiErrorInterface) {
+	req, err := s.UserData.GetReq(ctx, reqId)
+	if err != nil {
+		return &response.Response{}, utilError.ApiError{
+			Status:  http.StatusBadRequest,
+			Message: err.Error(),
+			Code:    "line 204",
+		}
+	}
+	switch status {
+	case "accept":
+		req.Status = ACCEPTED
+		_, err := s.UserData.UpdateReq(ctx, req)
+		if err != nil {
+			return &response.Response{}, utilError.ApiError{
+				Status:  http.StatusBadRequest,
+				Message: err.Error(),
+				Code:    "line 204",
+			}
+		}
+		if req.GenratedBy == DoctorClient {
+			return s.acceptDoctorRequuest(ctx, req)
+		}
+		return s.acceptPatientRequest(ctx, req)
+	case "reject":
+		req.Status = REJECTED
+		_, err := s.UserData.UpdateReq(ctx, req)
+		if err != nil {
+			return &response.Response{}, utilError.ApiError{
+				Status:  http.StatusBadRequest,
+				Message: err.Error(),
+				Code:    "line 204",
+			}
+		}
+	}
+	return &response.Response{}, nil
+}
+
+//                                          |
+//TODO: return all these with asssociation\|/
+func (s UserService) GetFBD(ctx context.Context) (*response.Response, utilError.ApiErrorInterface) {
+	id := ctx.Value("surround").(map[string]interface{})["id"].(float64)
+	fbds, err := s.UserData.GetFBD(ctx, id)
+	if err != nil {
+		return &response.Response{}, utilError.ApiError{
+			Status:  http.StatusBadRequest,
+			Message: err.Error(),
+		}
+	}
+	return &response.Response{
+		Status: http.StatusOK,
+		Data:   fbds,
+	}, nil
+
+}
+func (s UserService) GetFD(ctx context.Context) (*response.Response, utilError.ApiErrorInterface) {
+	id := ctx.Value("surround").(map[string]interface{})["id"].(float64)
+	fbds, err := s.UserData.GetFD(ctx, id)
+	if err != nil {
+		return &response.Response{}, utilError.ApiError{
+			Status:  http.StatusBadRequest,
+			Message: err.Error(),
+		}
+	}
+	return &response.Response{
+		Status: http.StatusOK,
+		Data:   fbds,
+	}, nil
+}
+func (s UserService) GetFBP(ctx context.Context) (*response.Response, utilError.ApiErrorInterface) {
+	id := ctx.Value("surround").(map[string]interface{})["id"].(float64)
+	fbds, err := s.UserData.GetFBP(ctx, id)
+	if err != nil {
+		return &response.Response{}, utilError.ApiError{
+			Status:  http.StatusBadRequest,
+			Message: err.Error(),
+		}
+	}
+	return &response.Response{
+		Status: http.StatusOK,
+		Data:   fbds,
+	}, nil
+}
+func (s UserService) GetFDBP(ctx context.Context) (*response.Response, utilError.ApiErrorInterface) {
+	id := ctx.Value("surround").(map[string]interface{})["id"].(float64)
+	fbds, err := s.UserData.GetFDBP(ctx, id)
+	if err != nil {
+		return &response.Response{}, utilError.ApiError{
+			Status:  http.StatusBadRequest,
+			Message: err.Error(),
+		}
+	}
+	return &response.Response{
+		Status: http.StatusOK,
+		Data:   fbds,
+	}, nil
+}
+
+//     ^
+//   /|\
+//    |

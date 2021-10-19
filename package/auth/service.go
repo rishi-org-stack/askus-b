@@ -15,7 +15,7 @@ type (
 		GetRequest(ctx context.Context, id int) (*AuthRequest, error)
 	}
 	Service interface {
-		HandleAuth(ctx context.Context) (*apiRes.Response, apiError.ApiErrorInterface)
+		HandleAuth(ctx context.Context, atr *AuthRequest) (*apiRes.Response, apiError.ApiErrorInterface)
 		Verify(ctx context.Context, otpReq *VerifyRequest) (*apiRes.Response, apiError.ApiErrorInterface)
 		GetRequestByID(ctx context.Context, id int) (*AuthRequest, error) //apiError.ApiErrorInterface)
 	}

@@ -31,6 +31,7 @@ func Route(g *echo.Group, serv advice.Service, m ...echo.MiddlewareFunc) {
 		svc: serv,
 	}
 	adviceGrp := g.Group("/advice", m...)
+	//TODO: i need to have a / page which should not just spit out all global advices rather than with some sense
 	adviceGrp.GET("/", h.getGlobals)
 	adviceGrp.GET("/g/:adviceID", h.getGlobal)
 	adviceGrp.GET("/:adviceID", h.getPersonelAdvice)
@@ -40,6 +41,8 @@ func Route(g *echo.Group, serv advice.Service, m ...echo.MiddlewareFunc) {
 	adviceGrp.POST("/g", h.create)
 	adviceGrp.POST("/:id", h.createPersonel)
 	// adviceGrp.GET("/:id", h.ok)
+	//TODO: we need a route for doc to get all his advices
+	//Mostly: Personnels
 
 }
 

@@ -26,6 +26,20 @@ func ClientCheck() echo.MiddlewareFunc {
 	}
 }
 
+func ClientTypeCheck(clientType string) echo.MiddlewareFunc {
+	return func(hf echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			client := c.Request().Header.Get("X-Client")
+			if client != clientType {
+				return c.JSON(http.StatusBadRequest, "unauthorized user")
+			}
+			c.Set("client", client)
+
+			return hf(c)
+		}
+	}
+}
+
 var routes = []string{
 	"/api/v1/auth/",
 	"/api/v1/auth/verify",

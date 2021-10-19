@@ -24,7 +24,11 @@ func Route(ser auth.Service, g *echo.Group, m ...echo.MiddlewareFunc) {
 }
 func (h *Http) ok(c echo.Context) error {
 	ctx := context.WithValue(context.Background(), "pgClient", c.Get("pgClient"))
-	res, err := h.serv.HandleAuth(ctx)
+	atr := &auth.AuthRequest{}
+	if err := c.Bind(atr); err != nil {
+		return err
+	}
+	res, err := h.serv.HandleAuth(ctx, atr)
 	if err != nil {
 		return apiRes.RespondError(c, err)
 	}

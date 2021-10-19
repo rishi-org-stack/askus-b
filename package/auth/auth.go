@@ -37,10 +37,10 @@ func Init(db DB, js TokenGenratorInterface, us user.Service, config *config.Env)
 	}
 }
 
-func (authSer AuthService) HandleAuth(ctx context.Context) (*apiRes.Response, apiError.ApiErrorInterface) {
-	atr := &AuthRequest{
-		Email: "rishi@gmail.com",
-	}
+func (authSer AuthService) HandleAuth(ctx context.Context, atr *AuthRequest) (*apiRes.Response, apiError.ApiErrorInterface) {
+	// atr := &AuthRequest{
+	// 	Email: "rishi@gmail.com",
+	// }
 	res, err := authSer.AuthData.FindOrInsert(ctx, atr)
 	if err != nil {
 		return &apiRes.Response{}, apiError.ApiError{

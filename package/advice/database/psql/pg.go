@@ -50,12 +50,12 @@ func (adb AdviceData) GetAdviceByDocID(ctx context.Context, id float64) (*advice
 func (adb AdviceData) GetAllPersonelAdvices(ctx context.Context, id float64) (*[]advice.Advice, error) {
 	db := ctx.Value("surround").(map[string]interface{})["pgClient"].(*gorm.DB)
 	adv := &[]advice.Advice{}
-	tx := db.First(adv, "posted_for=?", id)
+	tx := db.Find(adv, "posted_for=?", id)
 	return adv, tx.Error
 }
 func (adb AdviceData) GetAllDocAdvices(ctx context.Context, id float64) (*[]advice.Advice, error) {
 	db := ctx.Value("surround").(map[string]interface{})["pgClient"].(*gorm.DB)
 	adv := &[]advice.Advice{}
-	tx := db.First(adv, "posted_by=?", id)
+	tx := db.Find(adv, "posted_by=?", id)
 	return adv, tx.Error
 }
