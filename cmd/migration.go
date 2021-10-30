@@ -8,7 +8,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	_ "github.com/lib/pq"
+	// "gitub.com/lib/pq"
 	gpsql "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"log"
@@ -16,7 +16,6 @@ import (
 
 func main() {
 	psn := "postgresql://pgadmin:password@localhost/askus?sslmode=disable"
-
 	sqlDB, err := sql.Open("postgres", psn)
 	checkErr(err)
 	gdb, err := gorm.Open(gpsql.New(gpsql.Config{

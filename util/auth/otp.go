@@ -3,7 +3,6 @@ package auth
 import (
 	cache "askUs/v1/util/cache"
 	"errors"
-	"fmt"
 	"math/rand"
 	"strconv"
 	"time"
@@ -47,11 +46,6 @@ func isExpired(otp *OTP) bool {
 func (otp *OTP) Set(key int) error {
 	if !isExpired(otp) {
 		Key := strconv.Itoa(key)
-		// btArray, err := util.Serialize(otp)
-		// if err != nil {
-		// 	return err
-		// }
-		fmt.Printf("%T \n", (Key))
 		err := DB.Set(Key, otp.Otp, otp.duration)
 		return err
 	}
