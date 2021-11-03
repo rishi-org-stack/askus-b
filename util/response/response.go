@@ -13,14 +13,14 @@ type Response struct {
 }
 
 func Respond(c echo.Context, res *Response) (err error) {
-	contentType := c.Request().Header.Get("Content-Type")
+	// contentType := c.Request().Header.Get("Content-Type")
 
-	switch contentType {
-	case "application/json":
-		err = c.JSON(res.Status, res)
-	case "application/xml":
-		err = c.XML(res.Status, res)
-	}
+	// switch contentType {
+	// case "application/json":
+	err = c.JSON(res.Status, res)
+	// case "application/xml":
+	// 	err = c.XML(res.Status, res)
+	// }
 	return
 }
 func RespondError(c echo.Context, res utilError.ApiErrorInterface) (err error) {
