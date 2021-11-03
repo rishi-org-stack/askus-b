@@ -1,0 +1,6 @@
+
+[build]
+# Just plain old shell command. You could use `make` as well.
+cmd = "go build -o ./tmp/main ./cmd/api/"
+# Binary file yields from `cmd`.
+bin = "tmp/main"
