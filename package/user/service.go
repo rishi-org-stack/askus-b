@@ -54,6 +54,10 @@ type (
 		GetFD(ctx context.Context) (*response.Response, utilError.ApiErrorInterface)
 		GetFBP(ctx context.Context) (*response.Response, utilError.ApiErrorInterface)
 		GetFDBP(ctx context.Context) (*response.Response, utilError.ApiErrorInterface)
+		IsFriend(context.Context, int) (bool, utilError.ApiErrorInterface)
+	}
+	ReportDependence interface {
+		IsFriend(context.Context, int) (bool, utilError.ApiErrorInterface)
 	}
 	//TODO:User ID needs to be of type Object Id
 	Doctor struct {

@@ -14,11 +14,13 @@ type (
 	Service interface {
 		Upload(context.Context, *UploadRequest) (*response.Response, utilError.ApiErrorInterface)
 		Download(context.Context, string, http.ResponseWriter) (*response.Response, utilError.ApiErrorInterface)
+		Delete(context.Context, string) utilError.ApiErrorInterface
 	}
 	Store interface {
 		New() *storage.BucketHandle
 		Post(context.Context, *storage.BucketHandle, string, io.Reader) error
 		Get(context.Context, *storage.BucketHandle, string) ([]byte, error)
+		Delete(ctx context.Context, bucket *storage.BucketHandle, fileUrl string) error
 	}
 	UploadRequest struct {
 		FileName string
@@ -33,5 +35,5 @@ type (
 const (
 	Profile = "profile"
 	Advice  = "advice"
-	Report  = "resport"
+	Report  = "report"
 )
