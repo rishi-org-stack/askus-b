@@ -1,6 +1,7 @@
 package user
 
 import (
+	"askUs/v1/package/report"
 	"askUs/v1/util"
 	utilError "askUs/v1/util/error"
 	"askUs/v1/util/response"
@@ -29,11 +30,15 @@ type (
 	}
 )
 
-func Init(db DB) Service {
+func Init(db DB) (Service, report.User) {
 	return &UserService{
-		UserData: db,
-		// AuthService: authser,
-	}
+			UserData: db,
+			// AuthService: authser,
+		},
+		&UserService{
+			UserData: db,
+			// AuthService: authser,
+		}
 }
 
 func (s UserService) FindOrCreateDoctor(ctx context.Context, email string) (*Doctor, utilError.ApiErrorInterface) {
@@ -389,3 +394,8 @@ func (s UserService) GetFDBP(ctx context.Context) (*response.Response, utilError
 //     ^
 //   /|\
 //    |
+
+//REpport Service
+func (us UserService) IsFriend(context.Context, int) (bool, utilError.ApiErrorInterface) {
+	return true, nil
+}

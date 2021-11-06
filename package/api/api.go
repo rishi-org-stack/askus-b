@@ -10,6 +10,9 @@ import (
 	"askUs/v1/package/auth"
 	amdb "askUs/v1/package/auth/databases/psql"
 	authR "askUs/v1/package/auth/router"
+	"askUs/v1/package/report"
+	reportDB "askUs/v1/package/report/database/psql"
+	reportR "askUs/v1/package/report/router"
 	"askUs/v1/package/user"
 	umdb "askUs/v1/package/user/databases/psql"
 	userR "askUs/v1/package/user/router"
@@ -48,11 +51,14 @@ func (ap *api) Route(e *echo.Echo) {
 	// v1.GET("/", func(c echo.Context) error {
 	// 	return c.String(http.StatusAccepted, "Works well\n")
 	// })
-	userService := user.Init(&umdb.UserDb{})
+	userService, repSer := user.Init(&umdb.UserDb{})
 	adviceService := advice.Init(&admdb.AdviceData{})
 	authService := auth.Init(amdb.AuthDb{}, ap.Jwt, userService, ap.Config)
 	assetService := asset.Init(store.Init())
+	reportService := report.Init(reportDB.Init(), repSer, assetService)
+
 	// ideaService := idea.Init(ideamdb.IdeaDB{})
+	reportR.Router(v1, reportService, ap.MiddleWares...)
 	authR.Route(authService, v1, mid.ConnectionMDB(ap.Client))
 	userR.Route(v1, userService, ap.MiddleWares...)
 	adviceR.Route(v1, adviceService, ap.MiddleWares...)

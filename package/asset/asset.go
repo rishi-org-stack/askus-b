@@ -26,13 +26,13 @@ func (as AssetService) Upload(
 	ctx context.Context,
 	upr *UploadRequest) (*response.Response, utilError.ApiErrorInterface) {
 	id := util.GetFromServiceCtx(ctx, "id").(float64)
-	if upr.Kind != Profile && upr.Kind != Advice {
+	if upr.Kind != Profile && upr.Kind != Advice && upr.Kind != Report {
 		return &response.Response{}, utilError.ApiError{
 			Status:  http.StatusBadRequest,
 			Message: "unkwon kind",
 		}
 	}
-	fileUrl := upr.Kind + "/" + strconv.Itoa(int(id)) + "_" + upr.FileName
+	fileUrl := upr.Kind + "/" + strconv.Itoa(int(id)) + "/" + upr.FileName
 	reader := upr.Reader
 	buc := as.store.New()
 	err := as.store.Post(ctx, buc, fileUrl, reader)
@@ -70,4 +70,16 @@ func (as AssetService) Download(ctx context.Context, url string, writer http.Res
 			}
 	}
 	return &response.Response{}, nil
+}
+
+func (as AssetService) Delete(ctx context.Context, fileurl string) utilError.ApiErrorInterface {
+	bucket := as.store.New()
+	err := as.store.Delete(ctx, bucket, fileurl)
+	if err != nil {
+		return utilError.ApiError{
+			Status:  http.StatusInternalServerError,
+			Message: err.Error(),
+		}
+	}
+	return nil
 }

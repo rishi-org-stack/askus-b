@@ -3,15 +3,18 @@ package main
 import (
 	"askUs/v1/package/advice"
 	"askUs/v1/package/auth"
+	"askUs/v1/package/report"
 	"askUs/v1/package/user"
 	"askUs/v1/util/cache"
 	"context"
 	"database/sql"
 	"fmt"
+
 	// "gitub.com/lib/pq"
+	"log"
+
 	gpsql "gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"log"
 )
 
 func main() {
@@ -28,6 +31,8 @@ func main() {
 	ok := gdb.AutoMigrate(&auth.AuthRequest{})
 	checkErr(ok)
 	tx = gdb.Exec("DROP SCHEMA IF EXISTS usr CASCADE")
+	checkErr(tx.Error)
+	tx = gdb.Exec("DROP SCHEMA IF EXISTS report CASCADE")
 	checkErr(tx.Error)
 	tx = gdb.Exec("CREATE SCHEMA IF NOT EXISTS usr")
 	checkErr(tx.Error)
@@ -47,6 +52,10 @@ func main() {
 	tx = gdb.Exec("CREATE SCHEMA IF NOT EXISTS advice")
 	checkErr(tx.Error)
 	ok = gdb.AutoMigrate(&advice.Advice{}, &advice.Like{})
+	checkErr(ok)
+	tx = gdb.Exec("CREATE SCHEMA IF NOT EXISTS report")
+	checkErr(tx.Error)
+	ok = gdb.AutoMigrate(&report.UserReport{})
 	checkErr(ok)
 	clearCache()
 }

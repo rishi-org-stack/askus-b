@@ -80,3 +80,12 @@ func (store *Storage) Get(ctx context.Context, bucket *storage.BucketHandle, fil
 	}
 	return data, nil
 }
+
+func (store *Storage) Delete(ctx context.Context, bucket *storage.BucketHandle, fileUrl string) error {
+	object := bucket.Object(fileUrl)
+	err := object.Delete(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
+}

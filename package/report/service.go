@@ -1,10 +1,10 @@
 package report
 
 import (
+	"askUs/v1/package/asset"
 	utilError "askUs/v1/util/error"
 	"askUs/v1/util/response"
 	"context"
-	"io"
 	"net/http"
 )
 
@@ -16,15 +16,17 @@ import (
 //report/get/report/;patientID- get cross check with user module both are connected or not
 type (
 	DB interface {
-		Create(context.Context, *UserReport) (*UserReport, utilError.ApiErrorInterface)
-		Update(context.Context, *UserReport) (*UserReport, utilError.ApiErrorInterface)
-		Delete(context.Context, *UserReport) (*UserReport, utilError.ApiErrorInterface)
-		GetAll(context.Context, int) (*[]UserReport, utilError.ApiErrorInterface)
+		Create(context.Context, *UserReport) (*UserReport, error)
+		Update(context.Context, *UserReport) (*UserReport, error)
+		Get(context.Context, string, float64) (*UserReport, error)
+		Delete(context.Context, *UserReport) (*UserReport, error)
+		GetAll(context.Context, int) (*[]UserReport, error)
 	}
 
 	Asset interface {
-		Upload(context.Context, *UploadRequest) (*response.Response, utilError.ApiErrorInterface)
+		Upload(context.Context, *asset.UploadRequest) (*response.Response, utilError.ApiErrorInterface)
 		Download(context.Context, string, http.ResponseWriter) (*response.Response, utilError.ApiErrorInterface)
+		Delete(ctx context.Context, fileurl string) utilError.ApiErrorInterface
 	}
 
 	User interface {
@@ -33,31 +35,24 @@ type (
 	}
 
 	Service interface {
-		Create(context.Context, *UploadRequest) (*UserReport, utilError.ApiErrorInterface)
-		Update(context.Context, int) (*UserReport, utilError.ApiErrorInterface)
-		Delete(context.Context, int) (*UserReport, utilError.ApiErrorInterface)
-		GetAll(context.Context, int) (*[]UserReport, utilError.ApiErrorInterface)
+		Create(context.Context, *asset.UploadRequest, string) (*response.Response, utilError.ApiErrorInterface)
+		Update(context.Context, string, *asset.UploadRequest, string) (*response.Response, utilError.ApiErrorInterface)
+		Delete(context.Context, string) (*response.Response, utilError.ApiErrorInterface)
+		GetAll(context.Context, int) (*response.Response, utilError.ApiErrorInterface)
 	}
 	UserReport struct {
 		ID        int    `json:"id"  gorm:"primaryKey"`
 		Url       string `json:"url"`
 		Header    string `json:"header"`
+		FileUrl   string `json:"file_url"`
 		PatientId int    `json:"patent_id"`
-	}
-	UploadRequest struct {
-		FileName string
-		// Kind     string
-		Reader io.Reader
-	}
-	UploadResponse struct {
-		Url string `json:"url"`
 	}
 )
 
 const (
-	Report = "resport"
+	Report = "report"
 )
 
 func (UserReport) TableName() string {
-	return "report.reports."
+	return "report.reports"
 }
