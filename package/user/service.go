@@ -64,63 +64,63 @@ type (
 		ID int `json:"id" gorm:"primary"`
 		Info
 		// Address
-		Specialities       pq.StringArray `gorm:"type:text[]"`
-		ExpInYears         string
-		Experiences        *[]Experience
-		DegreeID           int
-		Degree             pq.StringArray `gorm:"type:text[]"`
-		FollowingDoctors   []FollowingDoctor
-		FollowedByDoctors  []FollowedByDoctor
-		FollowedByPatients []FollowedByPatient
-		Requests           []Request
+		Specialities       pq.StringArray      `gorm:"type:text[]" json:"specialities"`
+		ExpInYears         string              `json:"exp_in_years"`
+		Experiences        *[]Experience       `json:"experience"`
+		DegreeID           int                 `json:"degree_id"`
+		Degree             pq.StringArray      `gorm:"type:text[]" json:"degree"`
+		FollowingDoctors   []FollowingDoctor   `json:"following_doctors"`
+		FollowedByDoctors  []FollowedByDoctor  `json:"followed_by_doctors"`
+		FollowedByPatients []FollowedByPatient `json:"followed_by_patients"`
+		Requests           []Request           `json:"requests"`
 	}
 	//FD
 	FollowingDoctor struct {
-		ID       int
-		DoctorID int
-		Doctor   *Doctor
-		UserID   int
-		User     *Doctor
+		ID       int     `json:"id" gorm:"primary"`
+		DoctorID int     `json:"doctor_id"`
+		Doctor   *Doctor `json:"doctor"`
+		UserID   int     `json:"user_id"`
+		User     *Doctor `json:"user"`
 	}
 	//FDBP
 	FollowedDoctorsByPatient struct {
-		ID        int
-		PatientID int
-		Patient   *Patient
-		UserID    int
-		User      *Doctor
+		ID        int      `json:"id" gorm:"primary"`
+		PatientID int      `json:"patient_id"`
+		Patient   *Patient `json:"patient"`
+		UserID    int      `json:"user_id"`
+		User      *Doctor  `json:"user"`
 	}
 	//FBD
 	FollowedByDoctor struct {
-		ID       int
-		DoctorID int
-		Doctor   *Doctor
-		UserID   int
-		User     *Doctor
+		ID       int     `json:"id" gorm:"primary"`
+		DoctorID int     `json:"doctor_id"`
+		Doctor   *Doctor `json:"doctor"`
+		UserID   int     `json:"user_id"`
+		User     *Doctor `json:"user"`
 	}
 	//FBP
 	FollowedByPatient struct {
-		ID       int
-		DoctorID int
-		Doctor   *Doctor
-		UserID   int
-		User     *Patient
+		ID       int      `json:"id" gorm:"primary"`
+		DoctorID int      `json:"doctor_id"`
+		Doctor   *Doctor  `json:"doctor"`
+		UserID   int      `json:"user_id"`
+		User     *Patient `json:"user"`
 	}
 	Experience struct {
-		ID            int `json:"id" gorm:"primary"`
-		Institution   *Institution
-		WorkedBetween string
-		Department    string
-		Title         string
-		DoctorID      int `gorm:"not null"`
+		ID            int          `json:"id" gorm:"primary"`
+		Institution   *Institution `json:"Institution"`
+		WorkedBetween string       `json:"worked_between"`
+		Department    string       `json:"department"`
+		Title         string       `json:"title"`
+		DoctorID      int          `gorm:"not null" json:"doctor_id"`
 		Doctor        *Doctor
 	}
 	Institution struct {
 		ID int `json:"id" gorm:"primary"`
 		// Address
-		Name         string
-		ExperienceID int
-		Experience   *Experience
+		Name         string      `json:"name"`
+		ExperienceID int         `json:"experience_id"`
+		Experience   *Experience `json:"experience"`
 	}
 	Address struct {
 		// ID      int `json:"id" gorm:"primary"`
@@ -134,19 +134,19 @@ type (
 		ID int `json:"id" gorm:"primary"`
 		Info
 		// Address   *Address
-		Symptoms pq.StringArray `gorm:"type:text[]"`
+		Symptoms pq.StringArray `gorm:"type:text[]" json:"symptoms"`
 		// ConnectionsID int            `json:"connectionsID"`
 		// Connections   *Connections
 	}
 	Degree struct {
 	}
 	Info struct {
-		Email string
-		Phone string
+		Email string `json:"email"`
+		Phone string `json:"phone"`
 		Name  string `json:"name" gorm:"not null"`
-		Age   int
-		State string
-		Sex   string
+		Age   int    `json:"age"`
+		State string `json:"state"`
+		Sex   string `json:"sex"`
 		// Address
 	}
 	// Connections struct {
@@ -156,12 +156,12 @@ type (
 	// ConnectedWith string    `json:"connectedWith"`
 	// }
 	Request struct {
-		ID         int `json:"id" gorm:"primary"`
-		SenderID   int
-		DoctorID   int
-		Status     string
-		GenratedBy string
-		Doctor     *Doctor
+		ID         int     `json:"id" gorm:"primary"`
+		SenderID   int     `json:"sender_id"`
+		DoctorID   int     `json:"doctor_id"`
+		Status     string  `json:"status"`
+		GenratedBy string  `json:"genrated_by"`
+		Doctor     *Doctor `json:"doctor"`
 	}
 )
 

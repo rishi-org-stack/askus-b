@@ -41,6 +41,7 @@ func (authSer AuthService) HandleAuth(ctx context.Context, atr *AuthRequest) (*a
 	// atr := &AuthRequest{
 	// 	Email: "rishi@gmail.com",
 	// }
+
 	res, err := authSer.AuthData.FindOrInsert(ctx, atr)
 	if err != nil {
 		return &apiRes.Response{}, apiError.ApiError{

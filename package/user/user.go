@@ -204,18 +204,27 @@ func (s UserService) GetMyRequests(ctx context.Context) (*response.Response, uti
 
 func (s UserService) GetRequestForMe(ctx context.Context) (*response.Response, utilError.ApiErrorInterface) {
 	id := ctx.Value("surround").(map[string]interface{})["id"].(float64)
-	reqs, err := s.UserData.GetReqsWithDocID(ctx, id)
-	if err != nil {
-		return &response.Response{}, utilError.ApiError{
-			Status:  http.StatusBadGateway,
-			Message: err.Error(),
+	userType := util.GetFromServiceCtx(ctx, "userType")
+	if userType == DoctorClient {
+		reqs, err := s.UserData.GetReqsWithDocID(ctx, id)
+		if err != nil {
+			return &response.Response{}, utilError.ApiError{
+				Status:  http.StatusBadGateway,
+				Message: err.Error(),
+			}
 		}
+		return &response.Response{
+			Status:  http.StatusCreated,
+			Data:    reqs,
+			Message: "get all requests  sent by current user successfull",
+		}, nil
 	}
-	return &response.Response{
-		Status:  http.StatusCreated,
-		Data:    reqs,
-		Message: "get all requests  sent by current user successfull",
-	}, nil
+	return &response.Response{},
+		utilError.ApiError{
+			Status:  http.StatusBadRequest,
+			Message: "unauthorized user",
+		}
+
 }
 
 func (s UserService) acceptDoctorRequuest(ctx context.Context, req *Request) (*response.Response, utilError.ApiErrorInterface) {
@@ -256,6 +265,7 @@ func (s UserService) acceptDoctorRequuest(ctx context.Context, req *Request) (*r
 	return &response.Response{}, nil
 }
 func (s UserService) acceptPatientRequest(ctx context.Context, req *Request) (*response.Response, utilError.ApiErrorInterface) {
+
 	reciver, err := s.UserData.GetDoctorByID(ctx, float64(req.DoctorID))
 	if err != nil {
 		return &response.Response{}, utilError.ApiError{
@@ -294,6 +304,13 @@ func (s UserService) acceptPatientRequest(ctx context.Context, req *Request) (*r
 
 }
 func (s UserService) UpdateStatusOfReq(ctx context.Context, reqId string, status string) (*response.Response, utilError.ApiErrorInterface) {
+	userType := util.GetFromServiceCtx(ctx, "userType")
+	if userType != DoctorClient {
+		return &response.Response{}, utilError.ApiError{
+			Status:  http.StatusBadRequest,
+			Message: "unauthorized user",
+		}
+	}
 	req, err := s.UserData.GetReq(ctx, reqId)
 	if err != nil {
 		return &response.Response{}, utilError.ApiError{

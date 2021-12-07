@@ -5,6 +5,7 @@ import (
 	"askUs/v1/util"
 	apiRes "askUs/v1/util/response"
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -26,8 +27,10 @@ func (h *Http) ok(c echo.Context) error {
 	ctx := context.WithValue(context.Background(), "pgClient", c.Get("pgClient"))
 	atr := &auth.AuthRequest{}
 	if err := c.Bind(atr); err != nil {
+		fmt.Println("log of ok router")
 		return err
 	}
+	fmt.Println("no error")
 	res, err := h.serv.HandleAuth(ctx, atr)
 	if err != nil {
 		return apiRes.RespondError(c, err)
