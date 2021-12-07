@@ -47,7 +47,9 @@ func (ap *api) Route(e *echo.Echo) {
 	e.Use(mid.ConnectionMDB(ap.Client), mid.Logger(), mid.ClientCheck())
 
 	v1 := e.Group("/api/" + ap.Version)
-
+	v1.GET("/ping", func(c echo.Context) error {
+		return c.JSON(200, "pong")
+	})
 	// v1.GET("/", func(c echo.Context) error {
 	// 	return c.String(http.StatusAccepted, "Works well\n")
 	// })

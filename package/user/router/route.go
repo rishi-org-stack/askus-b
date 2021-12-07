@@ -5,6 +5,7 @@ import (
 	"askUs/v1/util"
 	"askUs/v1/util/middleware"
 	"askUs/v1/util/response"
+	"log"
 
 	"github.com/labstack/echo/v4"
 )
@@ -29,8 +30,8 @@ func Route(g *echo.Group, userService user.Service, m ...echo.MiddlewareFunc) {
 	grpReq := g.Group("/req", m...)
 	grpReq.POST("/:userID", h.createReq)
 	grpReq.GET("/my", h.getMyReqs)
-	grpReq.GET("/forme", h.getReqs, middleware.ClientTypeCheck(user.DoctorClient))
-	grpReq.PUT("/:reqID/:status", h.updateStatusReq, middleware.ClientTypeCheck(user.DoctorClient))
+	grpReq.GET("/forme", h.getReqs)                  //, middleware.ClientTypeCheck(user.DoctorClient))
+	grpReq.PUT("/:reqID/:status", h.updateStatusReq) //, middleware.ClientTypeCheck(user.DoctorClient))
 
 }
 
@@ -59,6 +60,7 @@ func (h *Http) updateById(c echo.Context) error {
 	if err := c.Bind(US); err != nil {
 		return response.RespondError(c, err)
 	}
+	log.Println(US)
 	user, err := h.uSer.UpdateDoctortByID(util.ToContextService(c), US)
 
 	if err != nil {
