@@ -71,7 +71,7 @@ type (
 		Degree             pq.StringArray `gorm:"type:text[]"`
 		FollowingDoctors   []FollowingDoctor
 		FollowedByDoctors  []FollowedByDoctor
-		FollowedByPatients []FollowedByPatient
+		FollowedByPatients []FollowedByPatient `gorm:"foreignKey:DoctorID"`
 		Requests           []Request
 	}
 	//FD
@@ -134,7 +134,9 @@ type (
 		ID int `json:"id" gorm:"primary"`
 		Info
 		// Address   *Address
-		Symptoms pq.StringArray `gorm:"type:text[]"`
+		Symptoms           pq.StringArray      `gorm:"type:text[]"`
+		FollowedByPatients []FollowedByPatient `gorm:"foreignKey:UserID"`
+
 		// ConnectionsID int            `json:"connectionsID"`
 		// Connections   *Connections
 	}

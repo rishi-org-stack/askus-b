@@ -5,6 +5,7 @@ import (
 	"context"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type UserDb struct{}
@@ -29,7 +30,14 @@ func (udb *UserDb) GetDoctorByID(ctx context.Context, id float64) (*user.Doctor,
 	// db := ctx.Value("pgClient").(*gorm.DB)
 	db := ctx.Value("surround").(map[string]interface{})["pgClient"].(*gorm.DB)
 	doc := &user.Doctor{}
-	tx := db.First(doc, "id=?", id)
+	model := db.Model(doc)
+	// fbps := &[]user.FollowedByPatient{}
+	// err := model.Association("FollowedByPatients")Fo.Find(fbps, "doctor_id=?", id)
+	// if err != nil {
+	// 	return doc, err
+	// }
+	tx := model.Preload(clause.Associations).Preload("FollowedByPatients.User").First(doc, "id=?", id)
+	// doc.FollowedByPatients = *fbps
 	return doc, tx.Error
 }
 func (udb *UserDb) GetDoctorByName(ctx context.Context, name string) (*user.Doctor, error) {
@@ -43,6 +51,7 @@ func (udb *UserDb) GetPatientByID(ctx context.Context, id float64) (*user.Patien
 	// db := ctx.Value("pgClient").(*gorm.DB)
 	db := ctx.Value("surround").(map[string]interface{})["pgClient"].(*gorm.DB)
 	doc := &user.Patient{}
+
 	tx := db.First(doc, "id=?", id)
 	return doc, tx.Error
 }
@@ -130,9 +139,13 @@ func (udb *UserDb) GetFD(ctx context.Context, id float64) (*[]user.FollowingDoct
 }
 func (udb *UserDb) GetFBP(ctx context.Context, id float64) (*[]user.FollowedByPatient, error) {
 	db := ctx.Value("surround").(map[string]interface{})["pgClient"].(*gorm.DB)
-	fbds := &[]user.FollowedByPatient{}
-	tx := db.Find(fbds, "doctor_id=?", id)
-	return fbds, tx.Error
+	fbps := &[]user.FollowedByPatient{}
+	// doctor := &[]user.Doctor{}
+	model := db.Model(fbps)
+	err := model.Preload("Doctor").Preload("User").Find(fbps, "doctor_id=?", id) //, "id=?", id)
+	// model.Association("Doctor").Find(doctor)
+
+	return fbps, err.Error
 }
 func (udb *UserDb) GetFDBP(ctx context.Context, id float64) (*[]user.FollowedDoctorsByPatient, error) {
 	db := ctx.Value("surround").(map[string]interface{})["pgClient"].(*gorm.DB)

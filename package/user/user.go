@@ -371,6 +371,7 @@ func (s UserService) GetFBP(ctx context.Context) (*response.Response, utilError.
 			Message: err.Error(),
 		}
 	}
+	// patient,err:= s.UserData.GetPatientByID(ctx,)
 	return &response.Response{
 		Status: http.StatusOK,
 		Data:   fbds,
