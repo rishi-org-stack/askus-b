@@ -64,15 +64,15 @@ type (
 		ID int `json:"id" gorm:"primary"`
 		Info
 		// Address
-		Specialities       pq.StringArray      `gorm:"type:text[]" json:"specialities"`
-		ExpInYears         string              `json:"exp_in_years"`
-		Experiences        *[]Experience       `json:"experience"`
-		DegreeID           int                 `json:"degree_id"`
-		Degree             pq.StringArray      `gorm:"type:text[]" json:"degree"`
-		FollowingDoctors   []FollowingDoctor   `json:"following_doctors"`
-		FollowedByDoctors  []FollowedByDoctor  `json:"followed_by_doctors"`
-		FollowedByPatients []FollowedByPatient `json:"followed_by_patients"`
-		Requests           []Request           `json:"requests"`
+		Specialities       pq.StringArray `gorm:"type:text[]"`
+		ExpInYears         string
+		Experiences        *[]Experience
+		DegreeID           int
+		Degree             pq.StringArray `gorm:"type:text[]"`
+		FollowingDoctors   []FollowingDoctor
+		FollowedByDoctors  []FollowedByDoctor
+		FollowedByPatients []FollowedByPatient `gorm:"foreignKey:DoctorID"`
+		Requests           []Request
 	}
 	//FD
 	FollowingDoctor struct {
@@ -134,7 +134,9 @@ type (
 		ID int `json:"id" gorm:"primary"`
 		Info
 		// Address   *Address
-		Symptoms pq.StringArray `gorm:"type:text[]" json:"symptoms"`
+		Symptoms           pq.StringArray      `gorm:"type:text[]"`
+		FollowedByPatients []FollowedByPatient `gorm:"foreignKey:UserID"`
+
 		// ConnectionsID int            `json:"connectionsID"`
 		// Connections   *Connections
 	}
