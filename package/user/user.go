@@ -5,6 +5,7 @@ import (
 	"askUs/v1/util"
 	utilError "askUs/v1/util/error"
 	"askUs/v1/util/response"
+	"strconv"
 
 	// "askUs/v1/util/response"
 	"context"
@@ -98,8 +99,13 @@ func (s UserService) GetDoctorByName(ctx context.Context, name string) (*respons
 		Data:    doc,
 	}, nil
 }
-func (s UserService) GetPatientByID(ctx context.Context) (*response.Response, utilError.ApiErrorInterface) {
+func (s UserService) GetPatientByID(ctx context.Context, args ...string) (*response.Response, utilError.ApiErrorInterface) {
 	id := ctx.Value("surround").(map[string]interface{})["id"].(float64)
+	if len(args) == 1 {
+		if res, err := strconv.ParseFloat(args[0], 64); err == nil {
+			id = res
+		}
+	}
 	doc, err := s.UserData.GetPatientByID(ctx, id)
 	if err != nil {
 		return &response.Response{}, utilError.ApiError{

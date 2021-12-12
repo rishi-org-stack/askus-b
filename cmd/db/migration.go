@@ -53,6 +53,8 @@ func main() {
 	checkErr(tx.Error)
 	ok = gdb.AutoMigrate(&advice.Advice{}, &advice.Like{})
 	checkErr(ok)
+	tx = gdb.Exec("DROP SCHEMA IF EXISTS report CASCADE")
+	checkErr(tx.Error)
 	tx = gdb.Exec("CREATE SCHEMA IF NOT EXISTS report")
 	checkErr(tx.Error)
 	ok = gdb.AutoMigrate(&report.UserReport{})

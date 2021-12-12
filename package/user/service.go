@@ -42,7 +42,7 @@ type (
 		FindOrCreatePatient(ctx context.Context, email string) (*Patient, utilError.ApiErrorInterface)
 		GetDoctorByID(ctx context.Context) (*response.Response, utilError.ApiErrorInterface)
 		GetDoctorByName(ctx context.Context, name string) (*response.Response, utilError.ApiErrorInterface)
-		GetPatientByID(ctx context.Context) (*response.Response, utilError.ApiErrorInterface)
+		GetPatientByID(ctx context.Context, args ...string) (*response.Response, utilError.ApiErrorInterface)
 		GetUserByID(ctx context.Context) (*response.Response, utilError.ApiErrorInterface)
 		GetMyRequests(ctx context.Context) (*response.Response, utilError.ApiErrorInterface)
 		GetRequestForMe(ctx context.Context) (*response.Response, utilError.ApiErrorInterface)

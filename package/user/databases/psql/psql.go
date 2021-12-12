@@ -27,17 +27,10 @@ func (udb *UserDb) FindOrCreatePatient(ctx context.Context, email string) (*user
 	return doc, tx.Error
 }
 func (udb *UserDb) GetDoctorByID(ctx context.Context, id float64) (*user.Doctor, error) {
-	// db := ctx.Value("pgClient").(*gorm.DB)
 	db := ctx.Value("surround").(map[string]interface{})["pgClient"].(*gorm.DB)
 	doc := &user.Doctor{}
 	model := db.Model(doc)
-	// fbps := &[]user.FollowedByPatient{}
-	// err := model.Association("FollowedByPatients")Fo.Find(fbps, "doctor_id=?", id)
-	// if err != nil {
-	// 	return doc, err
-	// }
 	tx := model.Preload(clause.Associations).Preload("FollowedByPatients.User").First(doc, "id=?", id)
-	// doc.FollowedByPatients = *fbps
 	return doc, tx.Error
 }
 func (udb *UserDb) GetDoctorByName(ctx context.Context, name string) (*user.Doctor, error) {

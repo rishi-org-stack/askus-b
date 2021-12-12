@@ -5,7 +5,6 @@ import (
 	"askUs/v1/util"
 	"askUs/v1/util/response"
 	"net/http"
-	"strings"
 
 	"github.com/labstack/echo/v4"
 )
@@ -32,14 +31,20 @@ func Route(g *echo.Group, serv advice.Service, m ...echo.MiddlewareFunc) {
 	}
 	adviceGrp := g.Group("/advice", m...)
 	//TODO: i need to have a / page which should not just spit out all global advices rather than with some sense
+	//Doc
+	adviceGrp.POST("/g", h.create)
+	adviceGrp.POST("/:id", h.createPersonel)
+	adviceGrp.GET("/p/my", h.getPersonelAdvicePostedByMe)
+	adviceGrp.GET("/p/:id", h.getPatientAdviceGrp)
+	adviceGrp.GET("/g/my", h.getPersonels)
+	//Patient
+	adviceGrp.GET("/p/forme", h.getPersonels)
+	//common
 	adviceGrp.GET("/", h.getGlobals)
 	adviceGrp.GET("/g/:adviceID", h.getGlobal)
 	adviceGrp.GET("/:adviceID", h.getPersonelAdvice)
 	adviceGrp.GET("/g/:adviceID/like", h.likeGlobal)
-	adviceGrp.GET("/p", h.getPersonels)
 	adviceGrp.GET("/all", h.getAll)
-	adviceGrp.POST("/g", h.create)
-	adviceGrp.POST("/:id", h.createPersonel)
 	// adviceGrp.GET("/:id", h.ok)
 	//TODO: we need a route for doc to get all his advices
 	//Mostly: Personnels
@@ -97,6 +102,22 @@ func (h *HTTP) getPersonels(c echo.Context) error {
 	return response.Respond(c, res)
 }
 
+func (h *HTTP) getPersonelAdvicePostedByMe(c echo.Context) error {
+	res, err := h.svc.GetPersonelAdvicesPostedByMe(util.ToContextService(c))
+	if err != nil {
+		return response.RespondError(c, err)
+	}
+	return response.Respond(c, res)
+}
+
+func (h *HTTP) getPatientAdviceGrp(c echo.Context) error {
+	res, err := h.svc.GetPatientAndMyAdvices(util.ToContextService(c), c.ParamValues()[0])
+	if err != nil {
+		return response.RespondError(c, err)
+	}
+	return response.Respond(c, res)
+	// return c.String(200, "ok")
+}
 func (h *HTTP) getAll(c echo.Context) error {
 	return c.String(200, "ok")
 }
@@ -110,6 +131,6 @@ func (h *HTTP) likeGlobal(c echo.Context) error {
 	return response.Respond(c, res)
 }
 
-func (h *HTTP) ok(c echo.Context) error {
-	return c.String(http.StatusAccepted, strings.Join(c.ParamValues(), ""))
-}
+// func (h *HTTP) ok(c echo.Context) error {
+// 	return c.String(http.StatusAccepted, strings.Join(c.ParamValues(), ""))
+// }

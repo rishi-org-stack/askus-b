@@ -53,9 +53,29 @@ func (adb AdviceData) GetAllPersonelAdvices(ctx context.Context, id float64) (*[
 	tx := db.Find(adv, "posted_for=?", id)
 	return adv, tx.Error
 }
+
+func (adb AdviceData) GetAllPersonelAdvicesPostedByDoc(ctx context.Context, id float64) (*[]advice.Advice, error) {
+	db := ctx.Value("surround").(map[string]interface{})["pgClient"].(*gorm.DB)
+	adv := &[]advice.Advice{}
+	tx := db.Preload("Patient").Find(adv, "posted_by=? and type=?", id, advice.PERSONEL)
+	// ok := db.Exec("select  *  from advice.advices  join usr.patients on advice.advices.patient_id=usr.patients.id  where type='PERSONEL';")
+	// fmt.Println("ok")
+	// fmt.Println("err ck :->", ok.Error)
+	// ck := ok.Scan(adv)
+	// fmt.Println(adv)
+	// fmt.Println("err ck :->", ck.Error)
+	return adv, tx.Error
+}
 func (adb AdviceData) GetAllDocAdvices(ctx context.Context, id float64) (*[]advice.Advice, error) {
 	db := ctx.Value("surround").(map[string]interface{})["pgClient"].(*gorm.DB)
 	adv := &[]advice.Advice{}
 	tx := db.Find(adv, "posted_by=?", id)
+	return adv, tx.Error
+}
+
+func (adb AdviceData) GetAdviceWithPIDAndDID(ctx context.Context, did float64, pid string) (*[]advice.Advice, error) {
+	db := ctx.Value("surround").(map[string]interface{})["pgClient"].(*gorm.DB)
+	adv := &[]advice.Advice{}
+	tx := db.Find(adv, "posted_by=? and posted_for=?", did, pid)
 	return adv, tx.Error
 }

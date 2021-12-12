@@ -54,7 +54,7 @@ func (ap *api) Route(e *echo.Echo) {
 	// 	return c.String(http.StatusAccepted, "Works well\n")
 	// })
 	userService, repSer := user.Init(&umdb.UserDb{})
-	adviceService := advice.Init(&admdb.AdviceData{})
+	adviceService := advice.Init(&admdb.AdviceData{}, userService)
 	authService := auth.Init(amdb.AuthDb{}, ap.Jwt, userService, ap.Config)
 	assetService := asset.Init(store.Init())
 	reportService := report.Init(reportDB.Init(), repSer, assetService)

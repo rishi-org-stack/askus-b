@@ -1,6 +1,7 @@
 package advice
 
 import (
+	"askUs/v1/package/user"
 	"askUs/v1/util"
 	utilError "askUs/v1/util/error"
 	"askUs/v1/util/response"
@@ -16,12 +17,14 @@ const (
 )
 
 type AdviceService struct {
-	AdviceData DB
+	adviceData  DB
+	userservice User
 }
 
-func Init(db DB) Service {
+func Init(db DB, user User) Service {
 	return &AdviceService{
-		AdviceData: db,
+		adviceData:  db,
+		userservice: user,
 	}
 }
 func (adServ AdviceService) CreateAdvice(ctx context.Context, adv *Advice) (*response.Response, utilError.ApiErrorInterface) {
@@ -32,7 +35,7 @@ func (adServ AdviceService) CreateAdvice(ctx context.Context, adv *Advice) (*res
 		adv.PostedBy = int(id)
 		adv.Type = GLOBAL
 		adv.PostedFor = 0
-		res, err := adServ.AdviceData.CreateAdvice(ctx, adv)
+		res, err := adServ.adviceData.CreateAdvice(ctx, adv)
 		if err != nil {
 			return &response.Response{}, utilError.ApiError{
 				Status:  http.StatusInternalServerError,
@@ -63,7 +66,7 @@ func (adServ AdviceService) CreatePersonelAdvice(ctx context.Context, adv *Advic
 		adv.Type = PERSONEL
 		adv.PostedFor = ptID
 		fmt.Println(adv)
-		res, err := adServ.AdviceData.CreateAdvice(ctx, adv)
+		res, err := adServ.adviceData.CreateAdvice(ctx, adv)
 		if err != nil {
 			return &response.Response{}, utilError.ApiError{
 				Status:  http.StatusInternalServerError,
@@ -87,7 +90,7 @@ func (adServ AdviceService) CreatePersonelAdvice(ctx context.Context, adv *Advic
 // func (adServ AdviceService) GetGlobalAdvices(ctx context.Context) (*response.Response, utilError.ApiErrorInterface)
 func (adServ AdviceService) GetGlobalAdvice(ctx context.Context, id string) (*response.Response, utilError.ApiErrorInterface) {
 	Id, _ := util.StringToInt(id)
-	adv, err := adServ.AdviceData.GetGlobalAdviceByID(ctx, float64(int64(Id)))
+	adv, err := adServ.adviceData.GetGlobalAdviceByID(ctx, float64(int64(Id)))
 	if err != nil {
 		return &response.Response{}, utilError.ApiError{
 			Status:  http.StatusBadRequest,
@@ -104,7 +107,26 @@ func (adServ AdviceService) GetGlobalAdvice(ctx context.Context, id string) (*re
 }
 func (adServ AdviceService) GetPersonelAdvices(ctx context.Context) (*response.Response, utilError.ApiErrorInterface) {
 	id, _ := util.GetFromServiceCtx(ctx, "id").(float64)
-	adv, err := adServ.AdviceData.GetAllPersonelAdvices(ctx, float64(int64(id)))
+	adv, err := adServ.adviceData.GetAllPersonelAdvices(ctx, float64(int64(id)))
+	if err != nil {
+		return &response.Response{}, utilError.ApiError{
+
+			Status:  http.StatusBadRequest,
+			Message: err.Error(),
+			Code:    ADVICE_GET_ERROR,
+		}
+
+	}
+	return &response.Response{
+		Status:  http.StatusOK,
+		Message: "Get Glbal advice success",
+		Data:    adv,
+	}, nil
+}
+
+func (adServ AdviceService) GetPersonelAdvicesPostedByMe(ctx context.Context) (*response.Response, utilError.ApiErrorInterface) {
+	id, _ := util.GetFromServiceCtx(ctx, "id").(float64)
+	adv, err := adServ.adviceData.GetAllPersonelAdvicesPostedByDoc(ctx, float64(int64(id)))
 	if err != nil {
 		return &response.Response{}, utilError.ApiError{
 
@@ -123,7 +145,7 @@ func (adServ AdviceService) GetPersonelAdvices(ctx context.Context) (*response.R
 func (adServ AdviceService) GetPersonelAdvice(ctx context.Context, id string) (*response.Response, utilError.ApiErrorInterface) {
 	Id, _ := util.StringToInt(id)
 	patientID, _ := util.GetFromServiceCtx(ctx, "id").(float64)
-	adv, err := adServ.AdviceData.GetPersonelAdviceByID(ctx, float64(int64(Id)))
+	adv, err := adServ.adviceData.GetPersonelAdviceByID(ctx, float64(int64(Id)))
 	if err != nil {
 		return &response.Response{}, utilError.ApiError{
 
@@ -147,7 +169,7 @@ func (adServ AdviceService) GetPersonelAdvice(ctx context.Context, id string) (*
 }
 func (adServ AdviceService) GetDocAdvices(ctx context.Context) (*response.Response, utilError.ApiErrorInterface) {
 	docID, _ := util.GetFromServiceCtx(ctx, "id").(float64)
-	adv, err := adServ.AdviceData.GetAllDocAdvices(ctx, float64(int64(docID)))
+	adv, err := adServ.adviceData.GetAllDocAdvices(ctx, float64(int64(docID)))
 	if err != nil {
 		return &response.Response{}, utilError.ApiError{
 			Status:  http.StatusBadRequest,
@@ -169,7 +191,7 @@ func (adServ AdviceService) LikeAdvice(ctx context.Context, advID string) (*resp
 	like := &Like{}
 	like.AdviceID = advid
 	like.LikedBy = int(ID)
-	like, err := adServ.AdviceData.CreateLike(ctx, like)
+	like, err := adServ.adviceData.CreateLike(ctx, like)
 	if err != nil {
 		return &response.Response{}, utilError.ApiError{
 			Status:  http.StatusBadRequest,
@@ -180,5 +202,31 @@ func (adServ AdviceService) LikeAdvice(ctx context.Context, advID string) (*resp
 		Status:  http.StatusOK,
 		Message: "Get all  advices of a particular doc success",
 		Data:    like,
+	}, nil
+}
+
+func (adserv AdviceService) GetPatientAndMyAdvices(ctx context.Context, pid string) (*response.Response, utilError.ApiErrorInterface) {
+	ID, _ := util.GetFromServiceCtx(ctx, "id").(float64)
+	result, err := adserv.userservice.GetPatientByID(ctx, pid)
+	if err != nil {
+		return &response.Response{}, utilError.ApiError{
+			Status:  http.StatusBadRequest,
+			Message: err.Error(),
+		}
+	}
+	var data = &PatientAdiceGRP{}
+	data.Patient = *result.Data.(*user.Patient)
+	advices, err := adserv.adviceData.GetAdviceWithPIDAndDID(ctx, ID, pid)
+	if err != nil {
+		return &response.Response{},
+			utilError.ApiError{
+				Status:  http.StatusBadRequest,
+				Message: err.Error(),
+			}
+	}
+	data.Advices = *advices
+	return &response.Response{
+		Status: http.StatusOK,
+		Data:   data,
 	}, nil
 }
