@@ -2,3 +2,4 @@ todo.txt
 tmp
 creds.json
 bin
+.env

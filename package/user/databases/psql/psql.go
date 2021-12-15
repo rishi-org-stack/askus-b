@@ -121,7 +121,7 @@ func (udb *UserDb) CreateFDBP(ctx context.Context, req *user.FollowedDoctorsByPa
 func (udb *UserDb) GetFBD(ctx context.Context, id float64) (*[]user.FollowedByDoctor, error) {
 	db := ctx.Value("surround").(map[string]interface{})["pgClient"].(*gorm.DB)
 	fbds := &[]user.FollowedByDoctor{}
-	tx := db.Find(fbds, "doctor_id=?", id)
+	tx := db.Preload("User").Find(fbds, "doctor_id=?", id)
 	return fbds, tx.Error
 }
 func (udb *UserDb) GetFD(ctx context.Context, id float64) (*[]user.FollowingDoctor, error) {

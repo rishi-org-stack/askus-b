@@ -73,7 +73,7 @@ func (s UserService) GetDoctorByID(ctx context.Context) (*response.Response, uti
 	if err != nil {
 		return &response.Response{}, utilError.ApiError{
 			Status:  http.StatusBadRequest,
-			Message: "Error in retriving doctor from db",
+			Message: err.Error(),
 			Code:    USER_GET_ERROR,
 		}
 	}
